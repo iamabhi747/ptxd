@@ -61,9 +61,6 @@ TEST_OBJ_FILES = $(patsubst $(TESTS)/%.cpp,$(TESTS_BUILD)/%.o,$(TEST_SRC_FILES))
 TEST_OUT_FILES = $(patsubst $(TESTS)/%.cpp,$(BIN)/%.out,$(TEST_SRC_FILES))
 DEPS_FILES += $(patsubst $(TESTS)/%.cpp,$(TESTS_BUILD)/%.d,$(TEST_SRC_FILES))
 
-SAMPLE_SRC_FILES = $(wildcard $(SAMPLES)/*.cpp)
-SAMPLE_OUT_FILES = $(patsubst $(SAMPLES)/%.cpp,$(SAMPLES_BIN)/%,$(SAMPLE_SRC_FILES))
-
 all: precheck $(BIN)/$(TARGET)
 
 precheck:
@@ -84,9 +81,6 @@ test: $(TEST_OUT_FILES)
 	done
 	@echo "\n$(Green)[+] Done!!"
 
-samples: $(SAMPLE_OUT_FILES)
-	@true
-
 %.test: $(BIN)/%.test.out
 	@$(call logs, "Running Test $*...")
 	@$(BIN)/$*.test.out
@@ -95,6 +89,15 @@ samples: $(SAMPLE_OUT_FILES)
 clean:
 	@$(call logw, "Removing Build Folder")
 	@rm -rf $(BUILD)
+
+init:
+	@$(call logs, "Initilizing hooks \& submodules")
+	git config core.hooksPath .githooks
+	git submodule update --init --recursive
+
+research:
+	$(MAKE) -C research
+
 
 $(BIN)/$(TARGET): $(OBJ_FILES) $(MAIN_OBJ)
 	@mkdir -p $(BIN)
