@@ -18,11 +18,12 @@ public:
 
 private:
     Logger& log;
+    std::unordered_map<std::string, std::string>& opts;
+    std::vector<std::unique_ptr<FunctionBlock>>& rawFunctions;
     
     const std::string inFile;
     const std::string outFile;
 
-    std::vector<std::unique_ptr<FunctionBlock>>& rawFunctions;
 
     void parse_ptx();
 };

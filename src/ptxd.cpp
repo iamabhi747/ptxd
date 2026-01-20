@@ -1,4 +1,5 @@
 #include <ptxd.h>
+#include <util/getdefault.h>
 
 #include <iostream>
 #include <fstream>
@@ -9,7 +10,7 @@ extern FILE* yyin;
 extern int yyparse();
 extern std::vector<std::unique_ptr<FunctionBlock>> parsedFunctions;
 
-PTXD::PTXD(const std::string& _inFile, const std::string& _outFile, std::unordered_map<std::string, std::string>& options) : inFile (_inFile), outFile (_outFile), log (Logger::getInstance()), rawFunctions (parsedFunctions)
+PTXD::PTXD(const std::string& _inFile, const std::string& _outFile, std::unordered_map<std::string, std::string>& options) : inFile (_inFile), outFile (_outFile), log (Logger::getInstance()), opts (options), rawFunctions (parsedFunctions)
 {
     if (!fs::is_regular_file(inFile))
     {
@@ -42,9 +43,19 @@ void PTXD::decompile()
     parse_ptx();
 
     std::ofstream oFile (outFile);
-    if (oFile.is_open())
+    if (!oFile.is_open())
     {
-        oFile << printCFG(parsedFunctions);
-        log.logi(3, "CFG is saved to file \"", outFile, "\" for debugging!");
+        log.loge(1, "Failed to open output file. (", outFile, ")");
+        exit(1);   
     }
+
+    if (getDefault(opts, "cfg", "N") == "Y")
+    {
+        oFile << printCFG(rawFunctions);
+        oFile.close();
+        log.logs(1, "Successfully written CFG to file \"", outFile, "\"");
+        return;
+    }
+
+    log.logi(3, "TODO: Decompilation...");
 }
