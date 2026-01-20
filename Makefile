@@ -9,8 +9,23 @@ TARGET = ptxd
 TESTS = ./tests
 TESTS_BUILD = $(BUILD)/tests
 
+FRONTEND = $(SRC)/frontend
+FRONTEND_BUILD = $(BUILD)/frontend
+
+LEX_SRC  = $(FRONTEND)/lexer.flex
+LEX_OUT  = $(FRONTEND_BUILD)/lex.yy.c
+
+YACC_SRC = $(FRONTEND)/parser.y
+YACC_OUT = $(FRONTEND_BUILD)/parser.tab.cpp
+YACC_HDR = $(FRONTEND_BUILD)/parser.tab.hpp
+
+FRONTEND_OBJS = $(FRONTEND_BUILD)/lex.yy.o $(FRONTEND_BUILD)/parser.tab.o
+
+
 CC    = g++
-CFLAGS = -std=c++20 -O3 -g -I$(INCLUDE) -MMD -MP
+LEX   = flex
+YACC  = /opt/homebrew/opt/bison/bin/bison
+CFLAGS = -std=c++20 -O3 -g -I$(INCLUDE) -I$(FRONTEND_BUILD) -MMD -MP
 LDFLAGS = -pthread
 
 # Color Codes
@@ -53,7 +68,7 @@ INCLUDE_FILES = $(wildcard $(INCLUDE)/*.h) $(wildcard $(INCLUDE)/**/*.h) $(wildc
 DEPS_FILES = $(patsubst $(SRC)/%.cpp,$(BUILD)/%.d,$(SRC_FILES))
 DEPS_FILES += $(patsubst $(SRC)/%.cpp,$(BUILD)/%.d,$(MAIN_CPP))
 
-OBJ_FILES = $(patsubst $(SRC)/%.cpp,$(BUILD)/%.o,$(SRC_FILES))
+OBJ_FILES = $(patsubst $(SRC)/%.cpp,$(BUILD)/%.o,$(SRC_FILES)) $(FRONTEND_OBJS)
 MAIN_OBJ = $(patsubst $(SRC)/%.cpp,$(BUILD)/%.o,$(MAIN_CPP))
 
 TEST_SRC_FILES = $(wildcard $(TESTS)/*.cpp)
@@ -119,5 +134,20 @@ $(BUILD)/%.o: $(SRC)/%.cpp
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $(SRC)/$*.cpp -o $@
 
+$(FRONTEND_BUILD)/lex.yy.o: $(LEX_OUT) $(YACC_HDR)
+	@mkdir -p $(FRONTEND_BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(FRONTEND_BUILD)/parser.tab.o: $(YACC_OUT)
+	@mkdir -p $(FRONTEND_BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(YACC_OUT) $(YACC_HDR): $(YACC_SRC)
+	@mkdir -p $(FRONTEND_BUILD)
+	$(YACC) -d -o $(YACC_OUT) $<
+
+$(LEX_OUT): $(LEX_SRC) $(YACC_HDR)
+	@mkdir -p $(FRONTEND_BUILD)
+	$(LEX) -o $@ $<
 
 -include ${DEPS_FILES}
