@@ -96,9 +96,9 @@ test: $(TEST_OUT_FILES)
 	done
 	@echo "\n$(Green)[+] Done!!"
 
-%.test: $(BIN)/%.test.out
+%.test: $(BIN)/%.out
 	@$(call logs, "Running Test $*...")
-	@$(BIN)/$*.test.out
+	@$(BIN)/$*.out
 	@$(call logs, "Finished Test $*")
 
 clean:
