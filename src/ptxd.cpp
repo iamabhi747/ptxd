@@ -9,11 +9,11 @@ extern FILE* yyin;
 extern int yyparse();
 extern std::vector<std::unique_ptr<FunctionBlock>> parsedFunctions;
 
-PTXD::PTXD(const std::string& _inFile, const std::string& _outFile, std::unordered_map<std::string, std::string>& options) : inFile (_inFile), outFile (_outFile), rawFunctions (parsedFunctions)
+PTXD::PTXD(const std::string& _inFile, const std::string& _outFile, std::unordered_map<std::string, std::string>& options) : inFile (_inFile), outFile (_outFile), log (Logger::getInstance()), rawFunctions (parsedFunctions)
 {
     if (!fs::is_regular_file(inFile))
     {
-        std::cerr << "Invalid input file" << std::endl;
+        log.loge(1, "Input file does not exists or not valid. (", inFile, ")");
         exit(1);
     }
 }
@@ -23,27 +23,28 @@ void PTXD::parse_ptx()
     FILE* iFile = fopen(inFile.c_str(), "r");
     if (!iFile)
     {
-        std::cerr << "Failed to input open file!" << std::endl;
+        log.loge(1, "Failed to open input file. (", inFile, ")");
         exit(1);
     }
     yyin = iFile;
 
     if (yyparse() != 0 || rawFunctions.size() == 0)
     {
-        std::cerr << "Parser Error!" << std::endl;
+        log.loge(1, "Decompilation failed due to syntax error in input file.");
         exit(1);
     }
+
+    log.logs(2, "Successfully parsed input PTX ISA file.");
 }
 
 void PTXD::decompile()
 {
     parse_ptx();
 
-    std::cout << "Parser Worked!!" << std::endl;
-
     std::ofstream oFile (outFile);
     if (oFile.is_open())
     {
         oFile << printCFG(parsedFunctions);
+        log.logi(3, "CFG is saved to file \"", outFile, "\" for debugging!");
     }
 }

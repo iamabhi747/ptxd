@@ -7,6 +7,7 @@
 #include <unordered_map>
 
 #include <cfg.hpp>
+#include <util/logger.h>
 
 class PTXD
 {
@@ -16,6 +17,8 @@ public:
     void decompile();
 
 private:
+    Logger& log;
+    
     const std::string inFile;
     const std::string outFile;
 

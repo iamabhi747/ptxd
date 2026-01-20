@@ -3,13 +3,16 @@
 #include <vector>
 #include <string>
 #include <memory>
+
+#include "util/logger.h"
 #include "cfg.hpp"
 
 extern int yylex();
 extern int yylineno;
 void yyerror(const char* s)
 {
-    std::cerr << "Error at line " << yylineno << ": " << s << std::endl;
+    Logger& log = Logger::getInstance();
+    log.loge(1, "Parser error at line", yylineno, ":", s);
 }
 
 std::vector<std::unique_ptr<FunctionBlock>> parsedFunctions;

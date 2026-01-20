@@ -4,6 +4,9 @@
 
 int main(int argc, char** argv)
 {
+    Logger& log = Logger::getInstance();
+    log.verbose = 3;
+
     std::string infile = "research/ptx/branch.ptx";
     std::string outfile = "build/sample.cfg.txt";
 

@@ -1,6 +1,7 @@
 %{
 #include <iostream>
 #include <string>
+#include "util/logger.h"
 #include "parser.tab.hpp"
 %}
 
@@ -35,5 +36,8 @@
 "<"|">"|"+"|"-"|","|";"|":" { return yytext[0]; }
 "."                         { return yytext[0]; }
 
-.                           { std::cerr << "Unknown token: " << yytext << " at line " << yylineno << std::endl; }
+.                           {
+    Logger& log = Logger::getInstance();
+    log.loge(1, "Lexer error at line", yylineno, ": Unkown token, matching \"", yytext, "\"");
+}
 %%
