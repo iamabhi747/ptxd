@@ -1,5 +1,6 @@
 #include <ptxd.h>
 #include <util/getdefault.h>
+#include <transformer.h>
 
 #include <iostream>
 #include <fstream>
@@ -10,6 +11,8 @@ extern FILE* yyin;
 extern int yyparse();
 extern std::vector<std::unique_ptr<FunctionBlock>> parsedFunctions;
 
+PTXD* Transformer::ptxd = nullptr;
+
 PTXD::PTXD(const std::string& _inFile, const std::string& _outFile, std::unordered_map<std::string, std::string>& options) : inFile (_inFile), outFile (_outFile), log (Logger::getInstance()), opts (options), rawFunctions (parsedFunctions)
 {
     if (!fs::is_regular_file(inFile))
@@ -17,6 +20,8 @@ PTXD::PTXD(const std::string& _inFile, const std::string& _outFile, std::unorder
         log.loge(1, "Input file does not exists or not valid. (", inFile, ")");
         exit(1);
     }
+
+    Transformer::ptxd = this;
 }
 
 void PTXD::parse_ptx()
