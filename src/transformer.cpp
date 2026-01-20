@@ -3,7 +3,7 @@
 void Transformer::registerTransformer(const std::string& name, TransformerFactory factory)
 {
     getRegistry()[name] = {factory, true};
-    log.logi(3, "Registered Transformer :", name);
+    log.logi(1, "Registered Transformer :", name); // Risky, log might not be initilized yet
 }
 
 void Transformer::enableTransformer(const std::string& name)
