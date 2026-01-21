@@ -25,7 +25,7 @@
 [a-zA-Z_][a-zA-Z0-9_]*      { yylval.str = new std::string(yytext); return IDENTIFIER; }
 \$[a-zA-Z0-9_]+             { yylval.str = new std::string(yytext); return LABEL; }
 \%[a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)?    { yylval.str = new std::string(yytext); return REGISTER; }
-\@[!]?\%[a-zA-Z0-9_]+       { yylval.str = new std::string(yytext); return PREDICATE; }
+\@[!]?\%[a-zA-Z0-9_]+       { yylval.str = new std::string(yytext + 1, yyleng - 1); return PREDICATE; }
 
 0[xX][0-9a-fA-F]+           { yylval.str = new std::string(yytext); return IMM_HEX; }
 0[fF][0-9a-fA-F]+           { yylval.str = new std::string(yytext); return IMM_FLOAT; }

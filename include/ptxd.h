@@ -16,7 +16,7 @@ public:
 
     void decompile();
 
-private:
+
     Logger& log;
     std::unordered_map<std::string, std::string>& opts;
     std::vector<std::unique_ptr<FunctionBlock>>& rawFunctions;

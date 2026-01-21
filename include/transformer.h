@@ -6,8 +6,7 @@
 #include <functional>
 
 #include <util/logger.h>
-
-class PTXD;
+#include <ptxd.h>
 
 class Transformer
 {

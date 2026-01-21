@@ -63,4 +63,6 @@ void PTXD::decompile()
     }
 
     log.logi(3, "TODO: Decompilation...");
+
+    Transformer::run("predicate");
 }
