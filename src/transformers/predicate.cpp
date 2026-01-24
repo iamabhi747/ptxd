@@ -197,6 +197,16 @@ public:
                     nb->successors.emplace_back(nb2, false);
                     nb->predecessors.emplace_back(curBlock, true);
 
+                    stmt = std::make_unique<PTXInstruction>();
+                    stmt->predicate = nb->statements[0]->predicate;
+                    PTXInstruction* ninst = dynamic_cast<PTXInstruction*> (stmt.get());
+                    ninst->op = PTXOpcode::BRA;
+                    ninst->operands.push_back({});
+                    ninst->operands[0].type = OperandType::LABEL;
+                    ninst->operands[0].name = nb->label;
+
+                    nb->statements.back()->predicate = "";
+
                     curBlock = nb2;
                 }
 
