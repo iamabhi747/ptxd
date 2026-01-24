@@ -54,6 +54,10 @@ void PTXD::decompile()
         exit(1);   
     }
 
+    log.logi(3, "TODO: Decompilation...");
+
+    Transformer::run("predicate");
+
     if (getDefault(opts, "cfg", "N") == "Y")
     {
         oFile << printCFG(rawFunctions);
@@ -61,8 +65,4 @@ void PTXD::decompile()
         log.logs(1, "Successfully written CFG to file \"", outFile, "\"");
         return;
     }
-
-    log.logi(3, "TODO: Decompilation...");
-
-    Transformer::run("predicate");
 }

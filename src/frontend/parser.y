@@ -286,8 +286,8 @@ statement:
         BranchBlock* newBlock = new BranchBlock(currentFunc->blocks.size(), *$1);
         currentFunc->blocks.push_back(std::unique_ptr<BranchBlock>(newBlock));
         // Add explicit edge from previous
-        currentBlock->successors.push_back(newBlock);
-        newBlock->predecessors.push_back(currentBlock);
+        currentBlock->successors.push_back({newBlock, false});
+        newBlock->predecessors.push_back({currentBlock, false});
         currentBlock = newBlock;
         delete $1;
     }

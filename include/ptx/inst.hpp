@@ -52,6 +52,7 @@ class PTXStmt
 {
 public:
     std::string predicate;
+    bool isCallSeq = false;
     virtual ~PTXStmt() = default;
 };
 
@@ -81,6 +82,8 @@ public:
     std::unordered_map<std::string, PTXVariable> callParameters;
 
     std::vector<PTXInstruction> rawInstructions;
+
+    PTXCallseq();
 };
 
 #endif

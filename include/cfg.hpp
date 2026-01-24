@@ -7,6 +7,8 @@
 #include <string>
 #include <memory>
 
+class BranchEdge;
+
 class BranchBlock
 {
 public:
@@ -15,10 +17,21 @@ public:
 
     std::vector<std::unique_ptr<PTXStmt>> statements;
 
-    std::vector<BranchBlock*> successors;
-    std::vector<BranchBlock*> predecessors;
+    std::vector<BranchEdge> successors;
+    std::vector<BranchEdge> predecessors;
 
-    BranchBlock(int id, const std::string& lbl = "") : id(id), label(lbl) {}
+    BranchBlock(int id, const std::string& lbl = "");
+    ~BranchBlock() = default;
+};
+
+class BranchEdge
+{
+public:
+    BranchBlock* block;
+    bool isDiversion;
+
+    BranchEdge(BranchBlock* _block, bool _isDiversion);
+    ~BranchEdge() = default;
 };
 
 class FunctionBlock
