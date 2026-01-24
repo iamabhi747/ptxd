@@ -6,109 +6,16 @@
 class PredicateTransformer : public Transformer
 {
 private:
-    FunctionBlock* curFunc;
-    BranchBlock* curBlock;
     bool moveStmts = false;
 
 public:
     std::string getName() const override { return "Predicate"; }
 
-    bool run() override
-    {
-        log.logi(3, "Called Predicate Transformer Run.");
-
-        if (ptxd == nullptr || ptxd->rawFunctions.size() == 0)
-        {
-            log.logw(1, "PTXD not initilized properly.");
-            return false;
-        }
-
-        for (auto& func: ptxd->rawFunctions)
-        {
-            if (!runFunc(func))
-            {
-                log.logw(1, getName(), "Transformer exausted at function", func->name);
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    bool runFunc(std::unique_ptr<FunctionBlock>& func)
-    {
-        curFunc = func.get();
-        int initial_size = func->blocks.size();
-        for (int i = 0; i < initial_size; i++)
-        {
-            auto block = std::move(func->blocks[i]);
-            if (block == nullptr) continue;
-
-            if (!runBlock(block))
-            {
-                log.logw(1, "Block (", block->id, "-", block->label, ") exausted.");
-                func->blocks[i] = std::move(block);
-                return false;
-            }
-
-            func->blocks[i] = std::move(block);
-        }
-        curFunc = nullptr;
-
-        std::erase_if(func->blocks, [](const std::unique_ptr<BranchBlock>& ptr) {
-            return ptr == nullptr; 
-        });
-
-        return true;
-    }
-
-    bool runBlock(std::unique_ptr<BranchBlock>& block)
-    {
-        curBlock = block.get();
-        int initial_size = block->statements.size();
-        for (int i = 0; i < initial_size; i++)
-        {
-            auto stmt = std::move(block->statements[i]);
-            if (stmt == nullptr) continue;
-
-            if (!runStmt(stmt))
-            {
-                log.logw(1, "Stmt (<TODO: REPR Stmt>) exausted.");
-                block->statements[i] = std::move(stmt);
-                return false;
-            }
-
-            block->statements[i] = std::move(stmt);
-        }
-        curBlock = nullptr;
-
-        std::erase_if(block->statements, [](const std::unique_ptr<PTXStmt>& ptr) {
-            return ptr == nullptr; 
-        });
-
-        if (block->statements.size() == 0)
-        {
-            for (const auto& pred : block->predecessors)
-            {
-                auto targetptr = block.get();
-                std::erase_if(pred.block->successors, [targetptr](const BranchEdge& s) {
-                    return s.block == targetptr;
-                });
-                
-                pred.block->successors.insert(pred.block->successors.end(), block->successors.begin(), block->successors.end());
-            }
-            block.reset();
-        }
-
-
-        return true;
-    }
-
-    bool runStmt(std::unique_ptr<PTXStmt>& stmt)
+    bool runStmt(std::unique_ptr<PTXStmt>& stmt) override
     {
         if (!stmt->predicate.empty())
         {
-            log.logi(1, "Found predicate (", stmt->predicate, ")");
+            log.logi(4, "Found predicate (", stmt->predicate, ")");
 
             bool isNot = stmt->predicate[0] == '!';
             std::string reg = stmt->predicate.substr(stmt->predicate.find("%"));
