@@ -17,7 +17,7 @@ static struct SampleAnalysisRegister
 {
     SampleAnalysisRegister()
     {
-        Transformer::registerTransformer("sample", []() {
+        Transformer::registerTransformer("sample", -1, []() {
             return std::make_unique<SampleAnalysisTransformer>();
         });
     }

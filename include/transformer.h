@@ -22,15 +22,17 @@ public:
     static inline Logger& log = Logger::getInstance();
     using TransformerFactory = std::function<std::unique_ptr<Transformer>()>;
 
-    static void registerTransformer(const std::string& name, TransformerFactory factory);
+    static void registerTransformer(const std::string& name, int priority, TransformerFactory factory);
     static void enableTransformer(const std::string& name);
     static void disableTransformer(const std::string& name);
     static bool isEnabled(const std::string& name);
     static bool run(const std::string& name);
 
+    static void getAllTransformers(std::vector<std::string>& transformers);
+
 private:
-    static std::unordered_map<std::string, std::pair<TransformerFactory, bool>>& getRegistry() {
-        static std::unordered_map<std::string, std::pair<TransformerFactory, bool>> registry;
+    static std::unordered_map<std::string, std::pair<TransformerFactory, int>>& getRegistry() {
+        static std::unordered_map<std::string, std::pair<TransformerFactory, int>> registry;
         return registry;
     }
 

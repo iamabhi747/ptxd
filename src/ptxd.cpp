@@ -43,7 +43,7 @@ void PTXD::parse_ptx()
     log.logs(2, "Successfully parsed input PTX ISA file.");
 }
 
-void PTXD::decompile()
+void PTXD::decompile(std::vector<std::string>& enabledTransformers)
 {
     parse_ptx();
 
@@ -56,8 +56,15 @@ void PTXD::decompile()
 
     log.logi(3, "TODO: Decompilation...");
 
-    Transformer::run("predicate");
-    Transformer::run("inventory");
+    if (enabledTransformers.empty())
+    {
+        Transformer::getAllTransformers(enabledTransformers);
+    }
+
+    for (const auto& transformerName : enabledTransformers)
+    {
+        Transformer::run(transformerName);
+    }
 
     if (getDefault(opts, "cfg", "N") == "Y")
     {

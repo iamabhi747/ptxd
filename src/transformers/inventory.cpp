@@ -256,7 +256,7 @@ static struct InventoryRegister
 {
     InventoryRegister()
     {
-        Transformer::registerTransformer("inventory", []() {
+        Transformer::registerTransformer("inventory", 10, []() {
             return std::make_unique<InventoryTransformer>();
         });
     }

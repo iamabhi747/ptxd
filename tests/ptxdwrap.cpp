@@ -21,6 +21,8 @@ int main(int argc, char** argv)
     std::unordered_map<std::string, std::string> opts;
     getAllOpts(cmdl, opts);
 
+    std::vector<std::string> enabledTransformers;
+
     PTXD ptxd (infile, outfile, opts);
-    ptxd.decompile();
+    ptxd.decompile(enabledTransformers);
 }

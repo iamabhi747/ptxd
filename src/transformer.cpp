@@ -1,9 +1,12 @@
 #include <transformer.h>
 
-void Transformer::registerTransformer(const std::string& name, TransformerFactory factory)
+#include <ranges>
+#include <algorithm>
+
+void Transformer::registerTransformer(const std::string& name, int prioroty, TransformerFactory factory)
 {
-    getRegistry()[name] = {factory, true};
-    log.logi(1, "Registered Transformer :", name); // Risky, log might not be initilized yet
+    getRegistry()[name] = {factory, prioroty};
+    log.logi(1, "Registered Transformer :", name, "(", prioroty, ")"); // Risky, log might not be initilized yet
 }
 
 void Transformer::enableTransformer(const std::string& name)
@@ -162,3 +165,32 @@ bool Transformer::runStmt(std::unique_ptr<PTXStmt>& stmt)
 }
 
 
+void Transformer::getAllTransformers(std::vector<std::string>& transformers)
+{
+    auto& reg = getRegistry();
+
+    transformers.clear();
+    transformers.reserve(reg.size());
+
+    struct PriorityData
+    {
+        int priority;
+        std::string_view name;
+    };
+
+    std::vector<PriorityData> allTransformers;
+    allTransformers.reserve(reg.size());
+
+    for (const auto& [key, value] : reg)
+    {
+        allTransformers.push_back({value.second, key}); 
+    }
+
+    std::ranges::sort(allTransformers, std::less{}, &PriorityData::priority);
+
+    auto keys_view = allTransformers 
+    | std::views::filter([](const PriorityData& data) { return data.priority != -1; })
+    | std::views::transform([](const PriorityData& data) { return std::string(data.name); });
+
+    std::ranges::copy(keys_view, std::back_inserter(transformers));
+}

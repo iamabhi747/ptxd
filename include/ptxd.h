@@ -14,7 +14,7 @@ class PTXD
 public:
     PTXD(const std::string& _inFile, const std::string& _outFile, std::unordered_map<std::string, std::string>& options);
 
-    void decompile();
+    void decompile(std::vector<std::string>& enabledTransformers);
 
 
     Logger& log;

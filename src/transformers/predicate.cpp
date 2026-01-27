@@ -137,7 +137,7 @@ static struct PredicateRegister
 {
     PredicateRegister()
     {
-        Transformer::registerTransformer("predicate", []() {
+        Transformer::registerTransformer("predicate", 1, []() {
             return std::make_unique<PredicateTransformer>();
         });
     }
