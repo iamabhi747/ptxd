@@ -1,7 +1,8 @@
 #include <transformer.h>
 #include <util/logger.h>
+#include <util/instmapper.h>
+
 #include <unordered_set>  
-#include <instmapper.h>
 
 class InventoryTransformer : public Transformer
 {

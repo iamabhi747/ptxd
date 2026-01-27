@@ -1,4 +1,4 @@
-#include <instmapper.h>
+#include <util/instmapper.h>
 #include <util/logger.h>
 
 InstMapper::InstMapper()
@@ -8,17 +8,12 @@ InstMapper::InstMapper()
 
 void InstMapper::registerHandlers() 
 {
-    // ==========================================
-    // 1. Data Movement
-    // ==========================================
     handlers[PTXOpcode::MOV] = [](PTXInstruction* inst) {
         return inst->operands[1].raw;
     };
     
-    // LD and ST (Load/Store) can are technically assignment, 
-    // but syntax might differ if memory brackets [] are involved.
     handlers[PTXOpcode::LD] = [](PTXInstruction* inst) {
-        return "*" + inst->operands[1].raw; // e.g. a = *ptr
+        return "*" + inst->operands[1].raw;
     };
     handlers[PTXOpcode::CVT] = [](PTXInstruction* inst) {
         std::string typeStr;
@@ -40,9 +35,7 @@ void InstMapper::registerHandlers()
         return "(" + typeStr + ")" + inst->operands[1].raw;
     };
 
-    // ==========================================
-    // 2. Arithmetic Operations
-    // ==========================================
+    // Arithmetic Operations
     handlers[PTXOpcode::ADD] = [](PTXInstruction* inst) {
         return inst->operands[1].raw + " + " + inst->operands[2].raw;
     };
@@ -76,9 +69,7 @@ void InstMapper::registerHandlers()
         return "max(" + inst->operands[1].raw + ", " + inst->operands[2].raw + ")";
     };
 
-    // ==========================================
-    // 3. Logic & Bitwise
-    // ==========================================
+    // Logic & Bitwise
     handlers[PTXOpcode::AND] = [](PTXInstruction* inst) {
         return inst->operands[1].raw + " & " + inst->operands[2].raw;
     };
@@ -101,9 +92,7 @@ void InstMapper::registerHandlers()
         return inst->operands[1].raw + " >> " + inst->operands[2].raw;
     };
 
-    // ==========================================
-    // 4. Extended Math
-    // ==========================================
+    // Extended Math
     handlers[PTXOpcode::SQRT] = [](PTXInstruction* inst) {
         return "sqrt(" + inst->operands[1].raw + ")";
     };
@@ -123,13 +112,8 @@ void InstMapper::registerHandlers()
         return "exp2(" + inst->operands[1].raw + ")";
     };
 
-    // ==========================================
-    // 5. Predicate & Comparison
-    // ==========================================
+    // Predicate & Comparison
     handlers[PTXOpcode::SETP] = [](PTXInstruction* inst) {
-        // PTX comparison (e.g. setp.eq %p1, %r1, %r2) gives you an eq, lt, gt.
-        // For standard decompilation without peeking at the modifiers for now, 
-        // a generic syntax can act as a placeholder.
         return "COMPARE(" + inst->operands[1].raw + ", " + inst->operands[2].raw + ")";
     };
     
