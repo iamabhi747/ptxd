@@ -57,6 +57,7 @@ void PTXD::decompile()
     log.logi(3, "TODO: Decompilation...");
 
     Transformer::run("predicate");
+    Transformer::run("inventory");
 
     if (getDefault(opts, "cfg", "N") == "Y")
     {

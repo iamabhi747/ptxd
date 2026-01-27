@@ -6,7 +6,8 @@
 class InventoryTransformer : public Transformer
 {
 private: 
-    struct MapFormat{
+    struct MapFormat
+    {
         int ref_count; 
         std::string operation; 
         bool isPure; 
@@ -34,9 +35,9 @@ private:
             inst->op == PTXOpcode::RET || inst->op == PTXOpcode::CALL || 
             inst->op == PTXOpcode::EXIT || inst->op == PTXOpcode::ATOM || 
             inst->op == PTXOpcode::BAR) 
-            {
-                return true; 
-            }
+        {
+            return true; 
+        }
 
         return !pureOpcodes.contains(inst->op); 
     }
@@ -101,12 +102,14 @@ private:
 
         bmap.insert(block->id); 
 
-        for(auto stmt = block->statements.rbegin(); stmt != block->statements.rend(); stmt ++){
+        for(auto stmt = block->statements.rbegin(); stmt != block->statements.rend(); stmt ++)
+        {
             PTXInstruction* inst = dynamic_cast<PTXInstruction*>(stmt->get()); 
 
             if(!inst) continue; 
 
-            if(isAnchor(inst)){
+            if(isAnchor(inst))
+            {
                 for(int i = 0; i < inst->operands.size(); i ++)
                 {
                     std::string& operandName = inst->operands[i].name; 
@@ -123,7 +126,8 @@ private:
             }
         }
 
-        for(auto& nextEdge : block->successors){
+        for(auto& nextEdge : block->successors)
+        {
             foldAnchorsInBlock(nextEdge.block);  
         }
 
@@ -137,83 +141,85 @@ private:
         bmap.insert(block->id); 
     
         for(auto& stmt : block->statements)
+        {
+            PTXInstruction* inst = dynamic_cast<PTXInstruction*>(stmt.get()); 
+    
+            if(inst != nullptr && !inst->operands.empty())
             {
-                PTXInstruction* inst = dynamic_cast<PTXInstruction*>(stmt.get()); 
-    
-                if(inst != nullptr && !inst->operands.empty())
+                if(inst->op == PTXOpcode::BRA || inst->op == PTXOpcode::CALL || inst->op == PTXOpcode::RET)
                 {
-                    if(inst->op == PTXOpcode::BRA 
-                        || inst->op == PTXOpcode::CALL
-                        || inst->op == PTXOpcode::RET)
-                    {
-                        idx ++; 
-                        continue; 
-                    }
-                    std::string assigner = inst->operands[0].name; 
+                    idx ++; 
+                    continue; 
+                }
+                std::string assigner = inst->operands[0].name; 
                     
     
-                    if(assigner.empty()){
-                        idx ++; 
-                        continue; 
-                    }
+                if(assigner.empty())
+                {
+                    idx ++; 
+                    continue; 
+                }
                     
-                    std::string base_logic = instMapper.getOperationLogic(inst); 
-                    std::string final_logic = base_logic; 
+                std::string base_logic = instMapper.getOperationLogic(inst); 
+                std::string final_logic = base_logic; 
                     
-                    for(int i = 1; i < inst->operands.size(); i ++)
+                for(int i = 1; i < inst->operands.size(); i ++)
+                {
+                    std::string operand = inst->operands[i].name; 
+                    if(!operand.empty() && mp.contains(operand)) 
                     {
-                        std::string operand = inst->operands[i].name; 
-                        if(!operand.empty() && mp.contains(operand)) 
-                        {
-                            mp[operand].ref_count += 1;  
-                        }
+                        mp[operand].ref_count += 1;  
                     }
-    
-                    if (!inst->predicate.empty()) 
-                    {
-                        std::string predicate_name = [inst](){
-                            if(inst->predicate.empty()) return std::string(""); 
-    
-                            int start = (inst->predicate[0] == '@' ? 1 : 0); 
-    
-                            if(start < inst->predicate.size() && inst->predicate[start] == '!'){
-                                start ++; 
-                            }
-    
-                            return inst->predicate.substr(start); 
-                        }();
-    
-                        if (!predicate_name.empty() && !base_logic.empty()) {
-                            final_logic = predicate_name + " ? (" + base_logic + ") : " + assigner;
-                        }
-                    }
-    
-    
-                    MapFormat newEntry; 
-                    newEntry.ref_count = 0; 
-                    newEntry.operation = final_logic; 
-                    newEntry.isPure = pureOpcodes.contains(inst->op);   
-                    newEntry.idx = idx; 
-                    newEntry.INST_TYPE = inst->op; 
-                    newEntry.inst = inst;
-    
-                    mp[assigner] = newEntry;  
                 }
     
-                idx ++; 
+                if (!inst->predicate.empty()) 
+                {
+                    std::string predicate_name = [inst]()
+                    {
+                        if(inst->predicate.empty()) return std::string(""); 
+    
+                        int start = (inst->predicate[0] == '@' ? 1 : 0); 
+    
+                        if(start < inst->predicate.size() && inst->predicate[start] == '!')
+                        {
+                            start++; 
+                        }
+    
+                        return inst->predicate.substr(start); 
+                    }();
+    
+                    if (!predicate_name.empty() && !base_logic.empty())
+                    {
+                        final_logic = predicate_name + " ? (" + base_logic + ") : " + assigner;
+                    }
+                }
+    
+    
+                MapFormat newEntry; 
+                newEntry.ref_count = 0; 
+                newEntry.operation = final_logic; 
+                newEntry.isPure = pureOpcodes.contains(inst->op);   
+                newEntry.idx = idx; 
+                newEntry.INST_TYPE = inst->op; 
+                newEntry.inst = inst;
+    
+                mp[assigner] = newEntry;  
             }
     
-            for(auto& sucessorEdge : block->successors)
-            {
-                traverseBlock(sucessorEdge.block, idx);  
-            }
+            idx ++; 
+        }
+    
+        for(auto& sucessorEdge : block->successors)
+        {
+            traverseBlock(sucessorEdge.block, idx);  
+        }
     }
 public:
-    std::string getName() const override { return "Mapper"; }
+    std::string getName() const override { return "Inventory"; }
 
     bool runFunc(std::unique_ptr<FunctionBlock>& func) override
     {
-        log.logi(1, "Processing the function", func->name); 
+        log.logi(3, "Processing the function", func->name); 
         
         int idx = 0; 
         bmap.clear();
@@ -224,7 +230,7 @@ public:
         }
 
 
-        log.logi(3, "Mapper Output for ", func->name);
+        log.logi(3, "Inventory Output for ", func->name);
         for (const auto& [assigner, data] : mp)
         {
             log.logi(3, "Var: ", assigner, 
@@ -245,12 +251,12 @@ public:
     }
 };
 
-static struct Inventory
+static struct InventoryRegister
 {
-    Inventory()
+    InventoryRegister()
     {
         Transformer::registerTransformer("inventory", []() {
             return std::make_unique<InventoryTransformer>();
         });
     }
-} register_sampleanalysis;
+} register_inventory;
