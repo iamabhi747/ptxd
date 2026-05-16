@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <set>
 
 #include "util/logger.h"
 #include "cfg.hpp"
@@ -20,6 +21,39 @@ std::vector<std::unique_ptr<FunctionBlock>> parsedFunctions;
 FunctionBlock* currentFunc = nullptr;
 BranchBlock* currentBlock = nullptr;
 PTXCallseq* currentCallseq = nullptr;
+
+std::set<std::string> specialRegisters = {
+    // Thread and Block Identification
+    "%tid.x", "%tid.y", "%tid.z",
+    "%ntid.x", "%ntid.y", "%ntid.z",
+    "%ctaid.x", "%ctaid.y", "%ctaid.z",
+    "%nctaid.x", "%nctaid.y", "%nctaid.z",
+
+    // Warp Management and Masking
+    "%laneid", "%warpid", "%nwarpid",
+    "%lanemask_eq", "%lanemask_le", "%lanemask_lt", 
+    "%lanemask_ge", "%lanemask_gt",
+
+    // Hardware and Device Topology
+    "%smid", "%nsmid", "%gridid",
+
+    // Timing, Profiling, and Memory State
+    "%clock", "%clock64", "%globaltimer",
+    "%total_smem_size", "%dynamic_smem_size",
+
+    // Performance Monitoring (pm0 to pm7)
+    "%pm0", "%pm1", "%pm2", "%pm3", "%pm4", "%pm5", "%pm6", "%pm7",
+
+    // Environment Registers (envreg0 to envreg31)
+    "%envreg0", "%envreg1", "%envreg2", "%envreg3", 
+    "%envreg4", "%envreg5", "%envreg6", "%envreg7",
+    "%envreg8", "%envreg9", "%envreg10", "%envreg11", 
+    "%envreg12", "%envreg13", "%envreg14", "%envreg15",
+    "%envreg16", "%envreg17", "%envreg18", "%envreg19", 
+    "%envreg20", "%envreg21", "%envreg22", "%envreg23",
+    "%envreg24", "%envreg25", "%envreg26", "%envreg27", 
+    "%envreg28", "%envreg29", "%envreg30", "%envreg31"
+};
 
 PTXOpcode stringToOpcode(const std::string& op)
 {
@@ -371,7 +405,7 @@ register_decl:
     | REGISTER '<' IMM_INT '>'
     {
         $$ = new std::vector<PTXVariable>();
-        for (int i=0; i<$3; ++i)
+        for (int i=1; i<$3; ++i)
         {
             PTXVariable v; v.name = *$1 + std::to_string(i);
             $$->push_back(v);
@@ -381,7 +415,7 @@ register_decl:
     | IDENTIFIER '<' IMM_INT '>'
     {
         $$ = new std::vector<PTXVariable>();
-        for (int i=0; i<$3; ++i)
+        for (int i=1; i<$3; ++i)
         {
             PTXVariable v; v.name = *$1 + std::to_string(i);
             $$->push_back(v);
@@ -436,7 +470,9 @@ operands:
 operand:
     REGISTER {
         $$ = new PTXOperand(); $$->type = OperandType::REGISTER; 
-        $$->name = *$1; $$->raw = *$1; delete $1;
+        $$->name = *$1; $$->raw = *$1;
+        if (specialRegisters.contains(*$1)) $$->type = OperandType::SPECIAL_REGISTER;
+        delete $1;
     }
     | IMM_INT {
         $$ = new PTXOperand(); $$->type = OperandType::IMMEDIATE_INT;
@@ -473,11 +509,11 @@ operand:
     }
     | '[' IDENTIFIER '+' IMM_INT ']' {
         $$ = new PTXOperand(); $$->type = OperandType::MEMORY;
-        $$->baseReg = *$2; $$->offset = $4;
+        $$->name = *$2; $$->offset = $4;
         $$->raw = "[" + *$2 + "+" + std::to_string($4) + "]"; delete $2;
     }
     | '(' IDENTIFIER ')' {
-        $$ = new PTXOperand(); $$->type = OperandType::REGISTER;
+        $$ = new PTXOperand(); $$->type = OperandType::LABEL;
         $$->name = *$2; $$->raw = "(" + *$2 + ")"; delete $2;
     }
     | '(' REGISTER ')' {
