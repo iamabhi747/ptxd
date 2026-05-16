@@ -231,10 +231,10 @@ public:
         }
 
 
-        log.logi(3, "Inventory Output for ", func->name);
+        log.logi(4, "Inventory Output for ", func->name);
         for (const auto& [assigner, data] : mp)
         {
-            log.logi(3, "Var: ", assigner, 
+            log.logi(4, "Var: ", assigner, 
                         " | Idx: ", data.idx, 
                         " | Refs: ", data.ref_count, 
                         " | Pure: ", (data.isPure ? "Yes" : "No"), 

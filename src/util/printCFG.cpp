@@ -120,13 +120,14 @@ std::string printCFG(std::vector<std::unique_ptr<FunctionBlock>>& functions)
         for (const auto& bb : f->blocks) {
             out << bb->label << ":\n";
             for (const auto& stmt : bb->statements) {
-                if (!stmt->predicate.empty()) {
-                    out << "    @" << stmt->predicate << " ";
-                } else {
-                    out << "    ";
-                }
                 
                 if (auto pInst = dynamic_cast<PTXInstruction*>(stmt.get())) {
+                    if (!pInst->predicate.empty()) {
+                        out << "    @" << pInst->predicate << " ";
+                    } else {
+                        out << "    ";
+                    }
+
                     out << opToString(pInst->op) << widthToString(pInst->width) 
                         << compToString(pInst->comp) << dtToString(pInst->type) 
                         << spaceToString(pInst->space);
@@ -139,6 +140,7 @@ std::string printCFG(std::vector<std::unique_ptr<FunctionBlock>>& functions)
                     }
                     out << ";\n";
                 } else if (auto pCall = dynamic_cast<PTXCallseq*>(stmt.get())) {
+                    out << "    ";
                     out << "callseq " << pCall->name << " {\n";
                     for (const auto& rInst : pCall->rawInstructions) {
                         out << "        " << opToString(rInst.op) << dtToString(rInst.type) << "\t";

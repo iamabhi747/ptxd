@@ -13,22 +13,22 @@ public:
 
     bool runStmt(std::unique_ptr<PTXStmt>& stmt) override
     {
-        if (!stmt->predicate.empty())
+        if (stmt->getName() == "Instruction")
         {
-            log.logi(4, "Found predicate (", stmt->predicate, ")");
+            PTXInstruction* inst = dynamic_cast<PTXInstruction*> (stmt.get());
 
-            bool isNot = stmt->predicate[0] == '!';
-            std::string reg = stmt->predicate.substr(stmt->predicate.find("%"));
-
-            if (!stmt->isCallSeq)
+            if (inst == nullptr)
             {
-                PTXInstruction* inst = dynamic_cast<PTXInstruction*> (stmt.get());
+                log.loge(1, "Failed to dynamic cast Stmt to Instruction.");
+                exit(1);
+            }
 
-                if (inst == nullptr)
-                {
-                    log.loge(1, "Failed to dynamic cast Stmt to Instruction.");
-                    exit(1);
-                }
+            if (!inst->predicate.empty())
+            {
+                log.logi(4, "Found predicate (", inst->predicate, ")");
+
+                bool isNot = inst->predicate[0] == '!';
+                std::string reg = inst->predicate.substr(inst->predicate.find("%"));
 
                 if (inst->op == PTXOpcode::BRA)
                 {
@@ -87,6 +87,8 @@ public:
                     curFunc->blocks.push_back(std::make_unique<BranchBlock>((int)curFunc->blocks.size(), curBlock->label + "-Y"));
                     BranchBlock* nb = curFunc->blocks.back().get();
 
+                    std::string curPredicate = std::move(inst->predicate);
+                    inst->predicate.clear();
                     nb->statements.push_back(std::move(stmt));
 
                     curFunc->blocks.push_back(std::make_unique<BranchBlock>((int)curFunc->blocks.size(), curBlock->label + "-N"));
@@ -105,23 +107,21 @@ public:
                     nb->predecessors.emplace_back(curBlock, true);
 
                     stmt = std::make_unique<PTXInstruction>();
-                    stmt->predicate = nb->statements[0]->predicate;
                     PTXInstruction* ninst = dynamic_cast<PTXInstruction*> (stmt.get());
+                    ninst->predicate = curPredicate;
                     ninst->op = PTXOpcode::BRA;
                     ninst->operands.push_back({});
                     ninst->operands[0].type = OperandType::LABEL;
                     ninst->operands[0].name = nb->label;
-
-                    nb->statements.back()->predicate = "";
 
                     curBlock = nb2;
                 }
 
                 moveStmts = true;
             }
-            else
+            else if (moveStmts)
             {
-                log.logw(1, "Unhandled case! predicate on CallSeq.");
+                curBlock->statements.push_back(std::move(stmt));
             }
         }
         else if (moveStmts)

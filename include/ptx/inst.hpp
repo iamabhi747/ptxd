@@ -51,8 +51,7 @@ struct PTXVariable
 class PTXStmt
 {
 public:
-    std::string predicate;
-    bool isCallSeq = false;
+    virtual std::string getName() const = 0;
     virtual ~PTXStmt() = default;
 };
 
@@ -60,6 +59,7 @@ class PTXInstruction : public PTXStmt
 {
 public:
     PTXOpcode op = PTXOpcode::NONE;
+    std::string predicate;
 
     // Modifiers
     PTXDataType type  = PTXDataType::NONE;
@@ -70,6 +70,8 @@ public:
     std::vector<std::string> genericModifiers;
 
     std::vector<PTXOperand> operands;
+
+    std::string getName() const override { return "Instruction"; };
 };
 
 class PTXCallseq : public PTXStmt
@@ -83,7 +85,7 @@ public:
 
     std::vector<PTXInstruction> rawInstructions;
 
-    PTXCallseq();
+    std::string getName() const override { return "CallSeq"; };
 };
 
 #endif
