@@ -11,8 +11,13 @@
 class Transformer
 {
 public:
+    bool reverseBlocks = false;
+    bool reverseStmts  = false;
+    
     virtual ~Transformer() = default;
     virtual std::string getName() const = 0;
+    virtual bool init();
+    virtual bool cleanup();
     virtual bool run();
     virtual bool runFunc(std::unique_ptr<FunctionBlock>& func);
     virtual bool runBlock(std::unique_ptr<BranchBlock>& block);

@@ -58,6 +58,9 @@ bool Transformer::run(const std::string& name)
 }
 
 
+bool Transformer::init() {return true;}
+bool Transformer::cleanup() {return true;}
+
 
 bool Transformer::run()
 {
@@ -68,6 +71,8 @@ bool Transformer::run()
         log.logw(1, "PTXD not initilized properly.");
         return false;
     }
+
+    if (!init()) return false;
 
     for (auto& func: ptxd->rawFunctions)
     {
@@ -82,6 +87,8 @@ bool Transformer::run()
         return ptr == nullptr;
     });
 
+    if (!cleanup()) return false;
+
     return true;
 }
 
@@ -90,8 +97,10 @@ bool Transformer::runFunc(std::unique_ptr<FunctionBlock>& func)
     curFunc = func.get();
 
     int initial_size = func->blocks.size();
-    for (int i = 0; i < initial_size; i++)
+    for (int _i = 0; _i < initial_size; _i++)
     {
+        int i = reverseBlocks ? (initial_size - 1 - _i) : _i;
+
         if (func->blocks[i] == nullptr) continue;
         
         auto block = std::move(func->blocks[i]);
@@ -119,8 +128,10 @@ bool Transformer::runBlock(std::unique_ptr<BranchBlock>& block)
     curBlock = block.get();
 
     int initial_size = block->statements.size();
-    for (int i = 0; i < initial_size; i++)
+    for (int _i = 0; _i < initial_size; _i++)
     {
+        int i = reverseStmts ? (initial_size - 1 - _i) : _i;
+        
         if (block->statements[i] == nullptr) continue;
 
         auto stmt = std::move(block->statements[i]);
