@@ -79,6 +79,15 @@ public:
                 }
             }
         }
+        else if (stmt->getName() == "CallSeq")
+        {
+            PTXCallseq* cseq = dynamic_cast<PTXCallseq*>(stmt.get());
+
+            for (auto& sub_inst : cseq->rawInstructions)
+            {
+                runStmt(sub_inst);
+            }
+        }
 
         return true;
     }

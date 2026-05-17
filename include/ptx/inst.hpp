@@ -83,7 +83,7 @@ public:
     std::vector<std::string> arguments;
     std::unordered_map<std::string, PTXVariable> callParameters;
 
-    std::vector<PTXInstruction> rawInstructions;
+    std::vector<std::unique_ptr<PTXStmt>> rawInstructions;
 
     std::string getName() const override { return "CallSeq"; };
 };

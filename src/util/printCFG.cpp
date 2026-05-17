@@ -143,9 +143,11 @@ std::string printCFG(std::vector<std::unique_ptr<FunctionBlock>>& functions)
                     out << "    ";
                     out << "callseq " << pCall->name << " {\n";
                     for (const auto& rInst : pCall->rawInstructions) {
-                        out << "        " << opToString(rInst.op) << dtToString(rInst.type) << "\t";
+                        auto prInst = dynamic_cast<PTXInstruction*>(rInst.get());
+                        if (prInst == nullptr) continue;
+                        out << "        " << opToString(prInst->op) << dtToString(prInst->type) << "\t";
                         bool firstOp = true;
-                        for (const auto& op : rInst.operands) {
+                        for (const auto& op : prInst->operands) {
                             out << (firstOp ? "" : ", ") << op.raw;
                             firstOp = false;
                         }

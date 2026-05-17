@@ -179,7 +179,7 @@ void applyModifier(PTXInstruction* inst, const std::string& mod)
 %token <num> IMM_INT
 %token <fnum> IMM_DEC
 
-%type <str_list> modifiers register_list
+%type <str_list> modifiers register_list identifier_list
 %type <str> modifier 
 %type <operand> operand
 %type <operand_list> operands
@@ -308,9 +308,20 @@ statement:
             // Check for CALL
             if ($1->op == PTXOpcode::CALL)
             {
-               currentCallseq->name = "call"; // Store specifics
+                if ($1->operands.size() == 3 && $1->operands[1].type == OperandType::LABEL && !$1->operands[1].isVector)
+                {
+                    currentCallseq->name = $1->operands[1].name;
+                }
+                else if ($1->operands.size() == 2 && $1->operands[0].type == OperandType::LABEL && !$1->operands[0].isVector)
+                {
+                    currentCallseq->name = $1->operands[0].name;
+                }
+                else
+                {
+                    currentCallseq->name = "UNKNOWN-func";
+                }
             }
-            currentCallseq->rawInstructions.push_back(*$1);
+            currentCallseq->rawInstructions.push_back(std::unique_ptr<PTXStmt>($1));
         } else {
             currentBlock->statements.push_back(std::unique_ptr<PTXStmt>($1));
         }
@@ -512,13 +523,28 @@ operand:
         $$->name = *$2; $$->offset = $4;
         $$->raw = "[" + *$2 + "+" + std::to_string($4) + "]"; delete $2;
     }
-    | '(' IDENTIFIER ')' {
+    | '(' identifier_list ')' {
         $$ = new PTXOperand(); $$->type = OperandType::LABEL;
-        $$->name = *$2; $$->raw = "(" + *$2 + ")"; delete $2;
+        $$->vectorRegs = std::move(*$2);
+        $$->isVector = true;
+        $$ ->raw = "(";
+        for (const auto& vecel : $$->vectorRegs)
+        {
+            $$->raw += vecel + ", ";
+        }
+        if ($$->raw.size() >= 2) $$->raw.resize($$->raw.size() - 2);
+        $$->raw += ")";
     }
-    | '(' REGISTER ')' {
-        $$ = new PTXOperand(); $$->type = OperandType::REGISTER;
-        $$->name = *$2; $$->raw = "(" + *$2 + ")"; delete $2;
+    ;
+
+identifier_list:
+    IDENTIFIER {
+        $$ = new std::vector<std::string>();
+        $$->push_back(*$1);
+    }
+    | identifier_list ',' IDENTIFIER {
+        $$ = $1;
+        $$->push_back(*$3);
     }
     ;
 
