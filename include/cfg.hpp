@@ -22,6 +22,9 @@ public:
 
     BranchBlock(int id, const std::string& lbl = "");
     ~BranchBlock() = default;
+
+    std::string_view REPR();
+    friend std::ostream& operator<<(std::ostream& os, BranchBlock& obj);
 };
 
 class BranchEdge
@@ -32,6 +35,9 @@ public:
 
     BranchEdge(BranchBlock* _block, bool _isDiversion);
     ~BranchEdge() = default;
+
+    std::string_view REPR();
+    friend std::ostream& operator<<(std::ostream& os, BranchEdge& obj);
 };
 
 class FunctionBlock
@@ -47,6 +53,9 @@ public:
 
     BranchBlock* entryBlock;
     std::vector<std::unique_ptr<BranchBlock>> blocks;
+
+    std::string_view REPR();
+    friend std::ostream& operator<<(std::ostream& os, FunctionBlock& obj);
 };
 
 

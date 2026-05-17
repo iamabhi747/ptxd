@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <string_view>
 
 enum class OperandType {
     NONE,
@@ -10,6 +11,8 @@ enum class OperandType {
     IMMEDIATE_INT, IMMEDIATE_FLOAT,
     MEMORY, LABEL
 };
+constexpr std::string_view REPR(OperandType obj);
+std::ostream& operator<<(std::ostream& os, OperandType obj);
 
 struct PTXOperand {
     OperandType type = OperandType::NONE;
@@ -26,6 +29,9 @@ struct PTXOperand {
     
     bool isVector = false;
     std::vector<std::string> vectorRegs;
+
+    std::string_view REPR();
+    friend std::ostream& operator<<(std::ostream& os, PTXOperand& obj);
 };
 
 #endif

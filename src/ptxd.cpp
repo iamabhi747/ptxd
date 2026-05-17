@@ -66,11 +66,8 @@ void PTXD::decompile(std::vector<std::string>& enabledTransformers)
         Transformer::run(transformerName);
     }
 
-    if (getDefault(opts, "cfg", "N") == "Y")
+    for (const auto& func : rawFunctions)
     {
-        oFile << printCFG(rawFunctions);
-        oFile.close();
-        log.logs(1, "Successfully written CFG to file \"", outFile, "\"");
-        return;
+        oFile << *func << std::endl << std::endl;
     }
 }

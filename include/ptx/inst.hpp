@@ -6,6 +6,7 @@
 
 #include <string>
 #include <vector>
+#include <string_view>
 #include <unordered_map>
 
 enum class PTXSpace
@@ -13,6 +14,8 @@ enum class PTXSpace
     NONE,
     REG, PARAM, SHARED, GLOBAL, CONST, LOCAL
 };
+constexpr std::string_view REPR(PTXSpace obj);
+std::ostream& operator<<(std::ostream& os, PTXSpace obj);
 
 enum class PTXDataType
 {
@@ -23,12 +26,16 @@ enum class PTXDataType
     F16, F32, F64,
     PRED
 };
+constexpr std::string_view REPR(PTXDataType obj);
+std::ostream& operator<<(std::ostream& os, PTXDataType obj);
 
 enum class PTXWidth
 {
     NONE,
     WIDE, LO, HI
 };
+constexpr std::string_view REPR(PTXWidth obj);
+std::ostream& operator<<(std::ostream& os, PTXWidth obj);
 
 enum class PTXComp
 {
@@ -40,7 +47,8 @@ enum class PTXComp
     AND, OR, NOT, XOR, SHL, SHR,
     LAND, LOR, LNOT // Logical (&&, ||, !)
 };
-
+constexpr std::string_view REPR(PTXComp obj);
+std::ostream& operator<<(std::ostream& os, PTXComp obj);
 
 
 struct PTXVariable
@@ -50,6 +58,9 @@ struct PTXVariable
     PTXSpace    space;
 
     int ref_count = 0;
+
+    std::string_view REPR();
+    friend std::ostream& operator<<(std::ostream& os, PTXVariable& obj);
 };
 
 class PTXStmt
@@ -57,6 +68,9 @@ class PTXStmt
 public:
     virtual std::string getName() const = 0;
     virtual ~PTXStmt() = default;
+
+    virtual std::string_view REPR() = 0;
+    friend std::ostream& operator<<(std::ostream& os, PTXStmt& obj);
 };
 
 class PTXInstruction : public PTXStmt
@@ -76,6 +90,7 @@ public:
     std::vector<PTXOperand> operands;
 
     std::string getName() const override { return "Instruction"; };
+    std::string_view REPR() override;
 };
 
 class PTXCallseq : public PTXStmt
@@ -90,6 +105,7 @@ public:
     std::vector<std::unique_ptr<PTXStmt>> rawInstructions;
 
     std::string getName() const override { return "CallSeq"; };
+    std::string_view REPR() override;
 };
 
 #endif

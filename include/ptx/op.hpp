@@ -1,6 +1,9 @@
 #ifndef PTX_OP_H
 #define PTX_OP_H
 
+#include <iostream>
+#include <string_view>
+
 enum class PTXOpcode {
     NONE,
 
@@ -129,5 +132,8 @@ enum class PTXOpcode {
     VPRINTF,    // Variadic print (printf)
     PMEVENT     // Performance monitor event
 };
+
+constexpr std::string_view REPR(PTXOpcode obj);
+std::ostream& operator<<(std::ostream& os, PTXOpcode obj);
 
 #endif
