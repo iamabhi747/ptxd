@@ -35,7 +35,7 @@ public:
             {
                 std::string predReg = inst->predicate.substr(inst->predicate.find("%"));
                 if (!crossCheckExistance(predReg)) return false;
-                curFunc->registers[predReg].ref_count++;
+                curFunc->registers[predReg].ref_count += 2;
             }
 
             if(skipableOpcodes.contains(inst->op) || inst->operands.size() <= 1) return true;
