@@ -34,7 +34,11 @@ enum class PTXComp
 {
     NONE,
     EQ, NE, LT, LE, GT, GE, EQU, NEU, LTU, LEU, GTU, GEU,
-    NUM, NANX
+    NUM, NANX,
+
+    ADD, SUB, MUL, DIV, MOD,
+    AND, OR, NOT, XOR, SHL, SHR,
+    LAND, LOR, LNOT // Logical (&&, ||, !)
 };
 
 
