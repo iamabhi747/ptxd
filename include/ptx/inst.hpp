@@ -45,7 +45,7 @@ struct PTXVariable
     PTXDataType type;
     PTXSpace    space;
 
-    int arrSize = 1;
+    int ref_count = 0;
 };
 
 class PTXStmt

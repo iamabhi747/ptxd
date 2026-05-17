@@ -112,7 +112,7 @@ std::string printCFG(std::vector<std::unique_ptr<FunctionBlock>>& functions)
 
         for (const auto& [name, reg] : f->registers) {
             out << "    " << spaceToString(reg.space) << dtToString(reg.type) << " " << reg.name;
-            if (reg.arrSize > 1) out << "<" << reg.arrSize << ">";
+            // if (reg.arrSize > 1) out << "<" << reg.arrSize << ">";
             out << ";\n";
         }
         out << "\n";
